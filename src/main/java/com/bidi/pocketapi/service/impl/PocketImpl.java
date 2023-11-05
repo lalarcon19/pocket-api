@@ -1,11 +1,11 @@
 package com.bidi.pocketapi.service.impl;
 
-import com.bidi.pocketapi.ApiException;
 import com.bidi.pocketapi.dto.PocketRequest;
 import com.bidi.pocketapi.dto.PocketResponse;
 import com.bidi.pocketapi.entity.Pocket;
+import com.bidi.pocketapi.exception.ApiException;
 import com.bidi.pocketapi.repository.IPocketRepository;
-import com.bidi.pocketapi.service.IPocketService;
+import com.bidi.pocketapi.service.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PocketImpl implements IPocketService {
+public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, ICreatePocketService, IUpdatePocketService, IDeletePocketService {
 
     public static final Logger logger = LoggerFactory.getLogger(PocketImpl.class);
     private final IPocketRepository pocketRepository;
@@ -47,48 +47,51 @@ public class PocketImpl implements IPocketService {
     }
 
     @Override
-    public PocketResponse getByNamePocket(String namePocket) throws ApiException {
+    public PocketResponse getByIdPocket(long idPocket) throws ApiException {
         logger.info("Se conecto al servicio para traer bolsillo por nombre");
-        PocketRequest.builder().namePocket(namePocket);
-        Optional<Pocket> pocketByName = pocketRepository.findBynamePocket(namePocket);
-        if (!pocketByName.isPresent()) {
+        Optional<Pocket> pocketByName = pocketRepository.findById(idPocket);
+        if (pocketByName.isEmpty()) {
             logger.info("No se encontro bolsillo con el nombre");
             throw new ApiException("No se encontro bolsillo",HttpStatus.NOT_FOUND);
+        }else {
+            logger.info("se encontro esa informacion en base de datos");
+            Pocket pocket = pocketByName.get();
+            PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
+            return pocketResponse;
         }
-        logger.info("se encontro esa informacion en base de datos");
-        Pocket pocket = pocketByName.get();
-        PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
-        return pocketResponse;
     }
 
     @Override
-    public PocketResponse createPocket(PocketRequest pocketRequest) throws ApiException {
+    public PocketResponse createPocket(PocketRequest pocketRequest, String idUser) throws ApiException {
         logger.info("Entro al servicio para crear bolsillos");
-        Optional<Pocket> pocketByName = pocketRepository.findBynamePocket(pocketRequest.getNamePocket());
-        if (pocketByName.isPresent()) {
-            logger.info("El bolsillo ya existe");
-            throw new ApiException("El bolsillo ya existe",HttpStatus.CONFLICT);
+        try {
+            Optional<Pocket> pocketByName = pocketRepository.findBynamePocket(pocketRequest.getNamePocket());
+            if (pocketByName.isPresent()) {
+                logger.info("El bolsillo ya existe");
+                throw new ApiException("El bolsillo ya existe", HttpStatus.CONFLICT);
+            }
+            Pocket pocket = mapper.map(pocketRequest, Pocket.class);
+            pocket.setIdUser(idUser);
+            pocketRepository.saveAndFlush(pocket);
+            logger.info("Se guardo bolsillo en base de datos");
+            return mapper.map(pocket, PocketResponse.class);
+        }catch (Exception e){
+            throw new ApiException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        Pocket pocket = mapper.map(pocketRequest, Pocket.class);
-        pocketRepository.saveAndFlush(pocket);
-        logger.info("Se guardo bolsillo en base de datos");
-        return mapper.map(pocket, PocketResponse.class);
     }
 
     @Override
     public PocketResponse updatePocket(long idPocket,PocketRequest pocketRequest) throws ApiException {
         logger.info("Entro al servicio para actualizar bolsillo");
-        Optional<Pocket> pocketByname = pocketRepository.findById(idPocket);
-        if (pocketByname.isPresent()) {
-            Pocket pocket = Pocket.builder()
-                    .namePocket(pocketRequest.getNamePocket())
-                    .amountPocket(pocketRequest.getAmountPocket())
-                    .colorPocket(pocketRequest.getColorPocket())
-                    .build();
-            pocketRepository.save(pocket);
-            PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
+        Pocket pocket = pocketRepository.findPocketByIdPocket(idPocket);
+        if (pocket != null) {
+            pocket.setNamePocket(pocketRequest.getNamePocket());
+            pocket.setAmountPocket(pocketRequest.getAmountPocket());
+            pocket.setColorPocket(pocketRequest.getColorPocket());
+            pocketRepository.saveAndFlush(pocket);
             logger.info("bolsillo actualizado");
-            throw new ApiException("Se actualizo el bolsillo",HttpStatus.OK);
+            PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
+            return pocketResponse;
         } else {
             logger.info("no se encontro bolsillo registrado para actualizar");
             throw new ApiException("No se encontro bolsillo", HttpStatus.NOT_FOUND);
@@ -96,13 +99,14 @@ public class PocketImpl implements IPocketService {
     }
 
     @Override
-    public void deletePocket(long id) throws ApiException {
+    public void deletePocket(long idPocket) throws ApiException {
         logger.info("Entro al servicio para eliminar bolsillos");
-        Optional<Pocket> pocketOptional = pocketRepository.findById(id);
+        Optional<Pocket> pocketOptional = pocketRepository.findById(idPocket);
         if (pocketOptional.isPresent()) {
             Pocket pocket = pocketOptional.get();
             pocketRepository.delete(pocket);
             logger.info("bolsillo eliminado");
+            throw new ApiException("Bolsillo eliminado",HttpStatus.OK);
         }else {
             logger.info("El bolsillo no existe");
             throw new ApiException("El bolsillo no exite",HttpStatus.NOT_FOUND);

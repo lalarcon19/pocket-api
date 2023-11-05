@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface IPocketRepository extends JpaRepository<Pocket,Long> {
     Optional<Pocket> findBynamePocket (String namePocket);
+    Pocket findPocketByIdPocket(long idPocket);
 }

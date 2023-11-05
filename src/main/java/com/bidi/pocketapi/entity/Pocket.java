@@ -13,7 +13,6 @@ import lombok.*;
 @Builder
 @Table(name = "BIDI_USERS")
 public class Pocket {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_POCKET")
@@ -24,4 +23,6 @@ public class Pocket {
     private int amountPocket;
     @Column(name = "COLOR_POCKET")
     private String colorPocket;
+    @Column(name = "ID_USER")
+    private String idUser;
 }

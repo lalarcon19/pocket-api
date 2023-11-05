@@ -1,9 +1,9 @@
 package com.bidi.pocketapi.controller;
 
-import com.bidi.pocketapi.ApiException;
 import com.bidi.pocketapi.dto.PocketRequest;
 import com.bidi.pocketapi.dto.PocketResponse;
-import com.bidi.pocketapi.service.IPocketService;
+import com.bidi.pocketapi.exception.ApiException;
+import com.bidi.pocketapi.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,36 +14,41 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("bidi/pocket")
+@RequestMapping("/pocket")
 public class PocketController {
-    private final IPocketService iPocketService;
+    private final IGetAllPocketService getAllPocket;
+    private final IGetByIdPocketService getByIdPocket;
+    private final ICreatePocketService createPocket;
+    private final IUpdatePocketService updatePocket;
+    private final IDeletePocketService deletePocket;
 
-    @GetMapping("/all")
+
+    @GetMapping("/{idUser}")
     public ResponseEntity <List<PocketResponse>> getAllPocket() throws ApiException {
-        List<PocketResponse> pocketResponse = iPocketService.getAllPocket();
+        List<PocketResponse> pocketResponse = getAllPocket.getAllPocket();
         return ResponseEntity.status(HttpStatus.OK).body(pocketResponse);
     }
-    @GetMapping("/{namePocket}")
-    public ResponseEntity <PocketResponse> getByIdPocket (@PathVariable String namePocket) throws ApiException {
-        PocketResponse pocketResponse = iPocketService.getByNamePocket(namePocket);
+    @GetMapping("/{idUSer}/{idPocket}")
+    public ResponseEntity <PocketResponse> getByIdPocket (@PathVariable long idPocket) throws ApiException {
+        PocketResponse pocketResponse = getByIdPocket.getByIdPocket(idPocket);
         return ResponseEntity.status(HttpStatus.OK).body(pocketResponse);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity <PocketResponse>createPocket (@RequestBody PocketRequest pocketRequest) throws ApiException {
-        PocketResponse pocketResponse = iPocketService.createPocket(pocketRequest);
+    @PostMapping("/{idUser}")
+    public ResponseEntity <PocketResponse>createPocket (@PathVariable String idUser, @RequestBody PocketRequest pocketRequest) throws ApiException {
+        PocketResponse pocketResponse = createPocket.createPocket(pocketRequest, idUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(pocketResponse);
     }
 
-    @PatchMapping("/update/{idPocket}")
+    @PutMapping("/{idPocket}")
     public ResponseEntity <PocketResponse> updatePocket (@PathVariable long idPocket, @RequestBody PocketRequest pocketRequest) throws ApiException {
-        PocketResponse response = iPocketService.updatePocket(idPocket,pocketRequest);
+        PocketResponse response = updatePocket.updatePocket(idPocket,pocketRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{idPocket}")
     public ResponseEntity deletePocket (@PathVariable long idPocket) throws ApiException {
-        iPocketService.deletePocket(idPocket);
+        deletePocket.deletePocket(idPocket);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
