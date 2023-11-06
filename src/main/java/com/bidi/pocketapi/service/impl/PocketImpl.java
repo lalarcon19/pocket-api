@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, ICreatePocketService, IUpdatePocketService, IDeletePocketService {
+public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, IGetAllPocketByIdUser,ICreatePocketService, IUpdatePocketService, IDeletePocketService {
 
     public static final Logger logger = LoggerFactory.getLogger(PocketImpl.class);
     private final IPocketRepository pocketRepository;
@@ -34,7 +34,7 @@ public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, 
             listPocket = pocketRepository.findAll();
         } catch (Exception e) {
             logger.error("ocurrio un error al hacer la consulta en base de datos", e);
-            throw new ApiException("Ocurrio un error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (listPocket.isEmpty()) {
             logger.info("No hay pockets creados");
@@ -49,18 +49,32 @@ public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, 
     @Override
     public PocketResponse getByIdPocket(long idPocket) throws ApiException {
         logger.info("Se conecto al servicio para traer bolsillo por nombre");
-        Optional<Pocket> pocketByName = pocketRepository.findById(idPocket);
-        if (pocketByName.isEmpty()) {
+        Optional<Pocket> pocketById = pocketRepository.findById(idPocket);
+        if (pocketById.isEmpty()) {
             logger.info("No se encontro bolsillo con el nombre");
             throw new ApiException("No se encontro bolsillo",HttpStatus.NOT_FOUND);
         }else {
             logger.info("se encontro esa informacion en base de datos");
-            Pocket pocket = pocketByName.get();
+            Pocket pocket = pocketById.get();
             PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
             return pocketResponse;
         }
     }
 
+    @Override
+    public List<PocketResponse> getAllPocketIdUser(String idUser) throws ApiException{
+        logger.info("Entro al servicio para traer lista de bolsillos por id de usuario");
+        List<Pocket> pocketList = pocketRepository.findPocketByIdUser(idUser);
+        if (pocketList.isEmpty()){
+            logger.info("No se encontro bolsillos registrados con este usuario");
+            throw new ApiException("No se encontro bolsillos registrados con este usuario",HttpStatus.NOT_FOUND);
+        }else {
+            logger.info("Se encontraron bolsillos registrados con el usuario");
+            return pocketList.stream()
+                    .map(pocket -> mapper.map(pocket, PocketResponse.class))
+                    .collect(Collectors.toList());
+        }
+    }
     @Override
     public PocketResponse createPocket(PocketRequest pocketRequest, String idUser) throws ApiException {
         logger.info("Entro al servicio para crear bolsillos");
@@ -91,7 +105,7 @@ public class PocketImpl implements IGetAllPocketService, IGetByIdPocketService, 
             pocketRepository.saveAndFlush(pocket);
             logger.info("bolsillo actualizado");
             PocketResponse pocketResponse = mapper.map(pocket, PocketResponse.class);
-            return pocketResponse;
+            throw new ApiException("bolsillo actualizado",HttpStatus.OK);
         } else {
             logger.info("no se encontro bolsillo registrado para actualizar");
             throw new ApiException("No se encontro bolsillo", HttpStatus.NOT_FOUND);

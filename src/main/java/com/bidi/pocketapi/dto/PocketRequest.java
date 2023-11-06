@@ -13,4 +13,5 @@ public class PocketRequest {
     private String namePocket;
     private int amountPocket;
     private String colorPocket;
+    private String idUser;
 }

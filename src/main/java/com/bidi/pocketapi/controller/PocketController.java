@@ -1,5 +1,6 @@
 package com.bidi.pocketapi.controller;
 
+
 import com.bidi.pocketapi.dto.PocketRequest;
 import com.bidi.pocketapi.dto.PocketResponse;
 import com.bidi.pocketapi.exception.ApiException;
@@ -21,9 +22,10 @@ public class PocketController {
     private final ICreatePocketService createPocket;
     private final IUpdatePocketService updatePocket;
     private final IDeletePocketService deletePocket;
+    private final IGetAllPocketByIdUser getAllByIdUser;
 
 
-    @GetMapping("/{idUser}")
+    @GetMapping("/all")
     public ResponseEntity <List<PocketResponse>> getAllPocket() throws ApiException {
         List<PocketResponse> pocketResponse = getAllPocket.getAllPocket();
         return ResponseEntity.status(HttpStatus.OK).body(pocketResponse);
@@ -33,7 +35,11 @@ public class PocketController {
         PocketResponse pocketResponse = getByIdPocket.getByIdPocket(idPocket);
         return ResponseEntity.status(HttpStatus.OK).body(pocketResponse);
     }
-
+    @GetMapping("/{idUser}")
+    public ResponseEntity <List<PocketResponse>> getAllPocketsByIdUser (@PathVariable String idUser) throws ApiException{
+        List<PocketResponse> response = getAllByIdUser.getAllPocketIdUser(idUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
     @PostMapping("/{idUser}")
     public ResponseEntity <PocketResponse>createPocket (@PathVariable String idUser, @RequestBody PocketRequest pocketRequest) throws ApiException {
         PocketResponse pocketResponse = createPocket.createPocket(pocketRequest, idUser);
