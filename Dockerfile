@@ -3,6 +3,6 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jdk-jammy
-COPY --from=build target/pocket-api 1.1.0-RELEASE app.jar
+COPY --from=build target/pocket-api-1.1.0-RELEASE app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app.jar"]
