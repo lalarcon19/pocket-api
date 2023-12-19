@@ -21,9 +21,10 @@ public class CreatePocketImpl implements ICreatePocketService {
     public static final Logger logger = LoggerFactory.getLogger(CreatePocketImpl.class);
     private final IPocketRepository pocketRepository;
     private final ModelMapper mapper = new ModelMapper();
+
     @Override
     public PocketResponse createPocket(PocketRequest pocketRequest, String idUser) throws ApiException {
-        logger.info("Entro al servicio para crear bolsillos");
+        logger.info("ingresa al servicio para crear bolsillos");
         try {
             Optional<Pocket> pocketByName = pocketRepository.findBynamePocket(pocketRequest.getNamePocket());
             if (pocketByName.isPresent()) {
@@ -35,8 +36,8 @@ public class CreatePocketImpl implements ICreatePocketService {
             pocketRepository.saveAndFlush(pocket);
             logger.info("Se guardo bolsillo en base de datos");
             return mapper.map(pocket, PocketResponse.class);
-        }catch (Exception e){
-            throw new ApiException(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            throw new ApiException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

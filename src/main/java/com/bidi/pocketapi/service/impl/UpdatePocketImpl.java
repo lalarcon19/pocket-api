@@ -5,7 +5,6 @@ import com.bidi.pocketapi.dto.PocketResponse;
 import com.bidi.pocketapi.entity.Pocket;
 import com.bidi.pocketapi.exception.ApiException;
 import com.bidi.pocketapi.repository.IPocketRepository;
-import com.bidi.pocketapi.service.ICreatePocketService;
 import com.bidi.pocketapi.service.IUpdatePocketService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,6 +19,7 @@ public class UpdatePocketImpl implements IUpdatePocketService {
     public static final Logger logger = LoggerFactory.getLogger(UpdatePocketImpl.class);
     private final IPocketRepository pocketRepository;
     private final ModelMapper mapper = new ModelMapper();
+
     @Override
     public PocketResponse updatePocket(long idPocket, PocketRequest pocketRequest) throws ApiException {
         logger.info("Entro al servicio para actualizar bolsillo");

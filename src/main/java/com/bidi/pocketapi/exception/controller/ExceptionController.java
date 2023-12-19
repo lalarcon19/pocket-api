@@ -12,9 +12,9 @@ import java.util.Map;
 public class ExceptionController {
 
     @ExceptionHandler(value = ApiException.class)
-    public ResponseEntity<Map<String,String>> handlerException (ApiException exception) {
+    public ResponseEntity<Map<String, String>> handlerException(ApiException exception) {
         Map<String, String> response = new HashMap<>();
         response.put("message: ", exception.getMessage());
         return new ResponseEntity<>(response, exception.getHttpStatus());
     }
-    }
+}
